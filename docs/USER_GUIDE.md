@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/batterysense_banner.png" alt="BatterySense AI banner" width="100%">
+  <img src="../assets/batterysense_banner.png" alt="BatterySense AI banner" width="100%">
 </p>
 
 
