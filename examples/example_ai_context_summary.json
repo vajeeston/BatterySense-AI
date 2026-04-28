@@ -1,0 +1,283 @@
+{
+  "uploaded_files": [
+    "SC600-15HC185_AG5_04.xlsx",
+    "SC600-15HC185_AG5_06.xlsx"
+  ],
+  "dataset_profile": {
+    "rows": 1379,
+    "columns": 17,
+    "column_names": [
+      "Cycle Index",
+      "Chg. Cap.(Ah)",
+      "DChg. Cap.(Ah)",
+      "Chg. Spec. Cap.(mAh/g)",
+      "DChg. Spec. Cap.(mAh/g)",
+      "Chg.-DChg. Eff(%)",
+      "Chg. Energy(Wh)",
+      "DChg. Energy(Wh)",
+      "Chg. Time",
+      "DChg. Time",
+      "Charge current difference value(A)",
+      "Discharge current difference value(A)",
+      "Charge DC internal resistance(m\u03a9)",
+      "Discharge DC internal resistance(m\u03a9)",
+      "cell_name",
+      "source_file",
+      "source_sheet"
+    ],
+    "numeric_columns": [
+      "Cycle Index",
+      "Chg. Cap.(Ah)",
+      "DChg. Cap.(Ah)",
+      "Chg. Spec. Cap.(mAh/g)",
+      "DChg. Spec. Cap.(mAh/g)",
+      "Chg.-DChg. Eff(%)",
+      "Chg. Energy(Wh)",
+      "DChg. Energy(Wh)",
+      "Charge current difference value(A)",
+      "Discharge current difference value(A)",
+      "Charge DC internal resistance(m\u03a9)",
+      "Discharge DC internal resistance(m\u03a9)"
+    ],
+    "categorical_columns": [
+      "Chg. Time",
+      "DChg. Time",
+      "cell_name",
+      "source_file",
+      "source_sheet"
+    ],
+    "top_missing_values": {
+      "Cycle Index": 0,
+      "Chg. Cap.(Ah)": 0,
+      "DChg. Cap.(Ah)": 0,
+      "Chg. Spec. Cap.(mAh/g)": 0,
+      "DChg. Spec. Cap.(mAh/g)": 0,
+      "Chg.-DChg. Eff(%)": 0,
+      "Chg. Energy(Wh)": 0,
+      "DChg. Energy(Wh)": 0,
+      "Chg. Time": 0,
+      "DChg. Time": 0,
+      "Charge current difference value(A)": 0,
+      "Discharge current difference value(A)": 0,
+      "Charge DC internal resistance(m\u03a9)": 0,
+      "Discharge DC internal resistance(m\u03a9)": 0,
+      "cell_name": 0,
+      "source_file": 0,
+      "source_sheet": 0
+    }
+  },
+  "column_mapping": {
+    "sample_name": null,
+    "cell_name": "cell_name",
+    "cycle_number": "Cycle Index",
+    "charge_capacity": "Chg. Spec. Cap.(mAh/g)",
+    "discharge_capacity": "DChg. Spec. Cap.(mAh/g)",
+    "coulombic_efficiency": "Chg.-DChg. Eff(%)",
+    "voltage": null,
+    "current": null,
+    "cc_capacity": null,
+    "cv_capacity": null
+  },
+  "overall_summary": {
+    "n_rows_analyzed": 1379,
+    "n_cells_or_samples": 2,
+    "n_anomalies": 11,
+    "best_performing_cell": "SC600-15HC185_AG5_04",
+    "worst_performing_cell": "SC600-15HC185_AG5_04",
+    "mean_last_capacity_retention_pct": 0.0,
+    "mean_degradation_rate_pct_per_cycle": -0.033993475738046744
+  },
+  "top_cells_by_retention": [
+    {
+      "cell_or_sample": "SC600-15HC185_AG5_04",
+      "n_points": 703,
+      "first_cycle": 1.0,
+      "last_cycle": 703.0,
+      "first_charge_capacity": 552.35,
+      "first_discharge_capacity": 496.94,
+      "first_coulombic_efficiency_pct": 89.97,
+      "max_discharge_capacity": 502.79,
+      "last_discharge_capacity": 0.0,
+      "last_capacity_retention_pct": 0.0,
+      "degradation_rate_pct_per_cycle": -0.0393,
+      "average_coulombic_efficiency_pct": 99.6641,
+      "cycle_life_estimate_to_80pct": 7.0,
+      "abnormal_capacity_drop_count": 4,
+      "max_single_cycle_drop_pct": 72.9223
+    },
+    {
+      "cell_or_sample": "SC600-15HC185_AG5_06",
+      "n_points": 676,
+      "first_cycle": 1.0,
+      "last_cycle": 676.0,
+      "first_charge_capacity": 500.67,
+      "first_discharge_capacity": 449.48,
+      "first_coulombic_efficiency_pct": 89.77,
+      "max_discharge_capacity": 481.01,
+      "last_discharge_capacity": 0.0,
+      "last_capacity_retention_pct": 0.0,
+      "degradation_rate_pct_per_cycle": -0.0287,
+      "average_coulombic_efficiency_pct": 99.6416,
+      "cycle_life_estimate_to_80pct": 7.0,
+      "abnormal_capacity_drop_count": 5,
+      "max_single_cycle_drop_pct": 78.4106
+    }
+  ],
+  "lowest_cells_by_retention": [
+    {
+      "cell_or_sample": "SC600-15HC185_AG5_04",
+      "n_points": 703,
+      "first_cycle": 1.0,
+      "last_cycle": 703.0,
+      "first_charge_capacity": 552.35,
+      "first_discharge_capacity": 496.94,
+      "first_coulombic_efficiency_pct": 89.97,
+      "max_discharge_capacity": 502.79,
+      "last_discharge_capacity": 0.0,
+      "last_capacity_retention_pct": 0.0,
+      "degradation_rate_pct_per_cycle": -0.0393,
+      "average_coulombic_efficiency_pct": 99.6641,
+      "cycle_life_estimate_to_80pct": 7.0,
+      "abnormal_capacity_drop_count": 4,
+      "max_single_cycle_drop_pct": 72.9223
+    },
+    {
+      "cell_or_sample": "SC600-15HC185_AG5_06",
+      "n_points": 676,
+      "first_cycle": 1.0,
+      "last_cycle": 676.0,
+      "first_charge_capacity": 500.67,
+      "first_discharge_capacity": 449.48,
+      "first_coulombic_efficiency_pct": 89.77,
+      "max_discharge_capacity": 481.01,
+      "last_discharge_capacity": 0.0,
+      "last_capacity_retention_pct": 0.0,
+      "degradation_rate_pct_per_cycle": -0.0287,
+      "average_coulombic_efficiency_pct": 99.6416,
+      "cycle_life_estimate_to_80pct": 7.0,
+      "abnormal_capacity_drop_count": 5,
+      "max_single_cycle_drop_pct": 78.4106
+    }
+  ],
+  "cell_metrics": [
+    {
+      "cell_or_sample": "SC600-15HC185_AG5_04",
+      "n_points": 703,
+      "first_cycle": 1.0,
+      "last_cycle": 703.0,
+      "first_charge_capacity": 552.35,
+      "first_discharge_capacity": 496.94,
+      "first_coulombic_efficiency_pct": 89.97,
+      "max_discharge_capacity": 502.79,
+      "last_discharge_capacity": 0.0,
+      "last_capacity_retention_pct": 0.0,
+      "degradation_rate_pct_per_cycle": -0.0393,
+      "average_coulombic_efficiency_pct": 99.6641,
+      "cycle_life_estimate_to_80pct": 7.0,
+      "abnormal_capacity_drop_count": 4,
+      "max_single_cycle_drop_pct": 72.9223
+    },
+    {
+      "cell_or_sample": "SC600-15HC185_AG5_06",
+      "n_points": 676,
+      "first_cycle": 1.0,
+      "last_cycle": 676.0,
+      "first_charge_capacity": 500.67,
+      "first_discharge_capacity": 449.48,
+      "first_coulombic_efficiency_pct": 89.77,
+      "max_discharge_capacity": 481.01,
+      "last_discharge_capacity": 0.0,
+      "last_capacity_retention_pct": 0.0,
+      "degradation_rate_pct_per_cycle": -0.0287,
+      "average_coulombic_efficiency_pct": 99.6416,
+      "cycle_life_estimate_to_80pct": 7.0,
+      "abnormal_capacity_drop_count": 5,
+      "max_single_cycle_drop_pct": 78.4106
+    }
+  ],
+  "anomalies": [
+    {
+      "cell_or_sample": "SC600-15HC185_AG5_04",
+      "cycle": 703.0,
+      "type": "coulombic_efficiency_out_of_range",
+      "severity": "medium",
+      "details": "CE=0.00% outside 80.0-105.0%."
+    },
+    {
+      "cell_or_sample": "SC600-15HC185_AG5_04",
+      "cycle": 9.0,
+      "type": "abnormal_capacity_drop",
+      "severity": "high",
+      "details": "Retention dropped by 11.56% from previous point."
+    },
+    {
+      "cell_or_sample": "SC600-15HC185_AG5_04",
+      "cycle": 11.0,
+      "type": "abnormal_capacity_drop",
+      "severity": "high",
+      "details": "Retention dropped by 15.32% from previous point."
+    },
+    {
+      "cell_or_sample": "SC600-15HC185_AG5_04",
+      "cycle": 13.0,
+      "type": "abnormal_capacity_drop",
+      "severity": "high",
+      "details": "Retention dropped by 17.59% from previous point."
+    },
+    {
+      "cell_or_sample": "SC600-15HC185_AG5_04",
+      "cycle": 703.0,
+      "type": "abnormal_capacity_drop",
+      "severity": "high",
+      "details": "Retention dropped by 72.92% from previous point."
+    },
+    {
+      "cell_or_sample": "SC600-15HC185_AG5_06",
+      "cycle": 676.0,
+      "type": "coulombic_efficiency_out_of_range",
+      "severity": "medium",
+      "details": "CE=0.00% outside 80.0-105.0%."
+    },
+    {
+      "cell_or_sample": "SC600-15HC185_AG5_06",
+      "cycle": 2.0,
+      "type": "abnormal_capacity_drop",
+      "severity": "high",
+      "details": "Retention dropped by 11.47% from previous point."
+    },
+    {
+      "cell_or_sample": "SC600-15HC185_AG5_06",
+      "cycle": 9.0,
+      "type": "abnormal_capacity_drop",
+      "severity": "high",
+      "details": "Retention dropped by 11.26% from previous point."
+    },
+    {
+      "cell_or_sample": "SC600-15HC185_AG5_06",
+      "cycle": 11.0,
+      "type": "abnormal_capacity_drop",
+      "severity": "high",
+      "details": "Retention dropped by 14.90% from previous point."
+    },
+    {
+      "cell_or_sample": "SC600-15HC185_AG5_06",
+      "cycle": 13.0,
+      "type": "abnormal_capacity_drop",
+      "severity": "high",
+      "details": "Retention dropped by 16.28% from previous point."
+    },
+    {
+      "cell_or_sample": "SC600-15HC185_AG5_06",
+      "cycle": 676.0,
+      "type": "abnormal_capacity_drop",
+      "severity": "high",
+      "details": "Retention dropped by 78.41% from previous point."
+    }
+  ],
+  "analysis_settings": {
+    "capacity_drop_threshold_pct": 10.0,
+    "ce_low_threshold_pct": 80.0,
+    "ce_high_threshold_pct": 105.0,
+    "cycle_life_retention_threshold_pct": 80.0
+  }
+}
