@@ -4,8 +4,57 @@
   "default_openai_model": "gpt-5.2",
   "default_ollama_model": "llama3.2",
   "ollama_host": "http://localhost:11434",
-  "max_ai_output_tokens": 1800,
+  "max_ai_output_tokens": 5000,
   "report_title": "BatterySense AI Battery Cycling Analysis Report",
+  "default_battery_cell_type": "full_cell",
+  "default_analysis_type": "multi_cell",
+  "copyright_year": 2026,
+  "copyright_owner": "AU P. Vajeeston",
+  "derived_metric_policy": {
+    "use_uploaded_ce_for_metrics": false,
+    "core_input_columns": [
+      "cycle_number",
+      "charge_or_lithiation_capacity",
+      "discharge_or_delithiation_capacity",
+      "optional_charge_time",
+      "optional_discharge_time"
+    ],
+    "locally_calculated_columns": [
+      "CE(%)",
+      "100-CE",
+      "irreversible_capacity",
+      "Acc_irreversible_capacity_u_mAh_per_cm2",
+      "Accumulated CE",
+      "CE_20_pt_AVG",
+      "SOH_pct",
+      "estimated_c_rate_from_time",
+      "capacity_retention_from_first_pct",
+      "capacity_retention_from_max_pct",
+      "retention_first_reference_capacity",
+      "retention_max_stabilized_reference_capacity"
+    ],
+    "full_cell_ce_formula": "discharge_capacity / charge_capacity * 100",
+    "half_cell_ce_formula": "delithiation_capacity / lithiation_capacity * 100",
+    "supported_cell_types": {
+      "full_cell": "CE = discharge_capacity / charge_capacity * 100",
+      "anode_half_cell": "CE = delithiation_capacity / lithiation_capacity * 100; common tester assumption: charge_capacity / discharge_capacity * 100",
+      "cathode_half_cell": "CE = lithiation_capacity / delithiation_capacity * 100; common tester assumption: discharge_capacity / charge_capacity * 100",
+      "half_cell": "Generic half-cell CE = reversible_capacity / inserted_capacity * 100 using selected mapped columns"
+    },
+    "anode_half_cell_ce_formula": "delithiation_capacity / lithiation_capacity * 100; common export assumption charge_capacity / discharge_capacity * 100",
+    "cathode_half_cell_ce_formula": "lithiation_capacity / delithiation_capacity * 100; common export assumption discharge_capacity / charge_capacity * 100",
+    "generic_half_cell_ce_formula": "reversible_capacity / inserted_capacity * 100",
+    "retention_baseline_policy": {
+      "first_valid_capacity": "capacity_retention_from_first_pct uses the first finite positive reversible/output capacity per cell/sample",
+      "max_stabilized_capacity": "capacity_retention_from_max_pct uses the maximum finite positive capacity in the cycling segment when available; otherwise the maximum valid capacity",
+      "primary_retention_metric": "capacity_retention_pct and SOH_pct use the max_stabilized_capacity baseline by default",
+      "full_cell_capacity_for_retention": "discharge/delithiation capacity",
+      "anode_half_cell_capacity_for_retention": "delithiation capacity under the selected CE convention; common tester assumption: charge capacity",
+      "cathode_half_cell_capacity_for_retention": "lithiation/discharge capacity under the selected CE convention; common tester assumption: discharge capacity"
+    }
+  },
+  "ai_report_prompt_style": "evidence_first_professional_battery_report_v3_no_code_fences",
+  "local_llm_system_prompt": "You are BatterySense AI, a senior battery research data analyst. Write a professional scientific interpretation using only Python-calculated evidence. Use exact cell names and exact values from the evidence sheet. Do not invent cell counts, chemistry, field trials, C-rates, EIS, post-mortem analysis, JSON structure, markdown tables, or code fences. Discuss retention baselines, CE, irreversible capacity, accumulated CE, SOH, anomalies, and reproducibility only from supplied metrics.",
   "cleaning": {
     "drop_all_empty_rows": true,
     "drop_duplicate_rows": false,
@@ -17,15 +66,53 @@
     "terminal_zero_capacity_is_incomplete": true,
     "terminal_change_threshold_pct": 30.0,
     "minimum_terminal_reference_points": 3,
-    "formation_max_cycles": 3,
+    "formation_max_cycles": 1,
     "formation_ce_threshold_pct": 95.0,
     "rate_test_cv_threshold": 0.08,
-    "rate_test_window_cycles": 5
+    "rate_test_window_cycles": 5,
+    "rate_test_auto_recovery_detection": true,
+    "rate_test_recovery_jump_threshold_pct": 25.0,
+    "rate_test_max_search_cycles": 80,
+    "rate_test_min_cycles": 2
   },
   "analysis": {
     "capacity_drop_threshold_pct": 10.0,
     "ce_low_threshold_pct": 80.0,
     "ce_high_threshold_pct": 105.0,
     "cycle_life_retention_threshold_pct": 80.0
-  }
+  },
+  "default_include_segments": [
+    "formation",
+    "rate_test",
+    "cycling"
+  ],
+  "ai_prompt_quality_controls": {
+    "evidence_first_prompt": true,
+    "requires_exact_cell_names": true,
+    "blocks_generic_cell_labels": [
+      "Cell 1 (Implied)",
+      "Cell 2 (Implied)",
+      "Cell 3 (Implied)"
+    ],
+    "blocks_unsupported_claims": [
+      "field trials",
+      "cell balancing",
+      "six batteries",
+      "19 battery cells"
+    ],
+    "fallback_if_ai_contradicts_evidence": true,
+    "required_sections": [
+      "Executive summary",
+      "Data and protocol overview",
+      "Formation and early-cycle behaviour",
+      "Capacity evolution and SOH",
+      "Coulombic efficiency and irreversible capacity",
+      "Cell-to-cell comparison and reproducibility",
+      "Anomaly and data-quality assessment",
+      "Scientific interpretation",
+      "Recommended next experiments",
+      "Final conclusion"
+    ]
+  },
+  "default_protocol_overrides": ""
 }

@@ -1,0 +1,22 @@
+{
+  "battery_cycling_report": {
+    "name": "Battery cycling scientific report",
+    "prompt": "You are a battery research data analyst. Write a scientific report based only on the calculated battery cycling metrics provided by BatterySense AI. Discuss formation, rate-test, cycling stability, Coulombic efficiency, capacity retention, degradation rate, anomalies, and recommended next experiments. Do not invent values. Do not describe JSON or software structure."
+  },
+  "lab_qc_progress_report": {
+    "name": "Lab QC progress report",
+    "prompt": "You are a battery lab quality-control analyst. Write a concise monthly progress report for a battery research lab. Use only the calculated monthly QC tables, figures, and metrics provided by BatterySense AI. Explain how Coulombic Efficiency, CE STD, mass loading variability, first-cycle lithiation/delithiation variability, and long-term cycling indicators change over time. Add short beginner-friendly explanations for what each trend means for cell quality and reproducibility. Do not invent values."
+  },
+  "beginner_battery_report": {
+    "name": "Beginner-friendly battery report",
+    "prompt": "Write the report for beginner battery researchers. Use simple scientific language. Explain CE, STD, CV, lithiation, delithiation, mass loading, capacity loss, and cycle-life metrics clearly. Keep the explanation practical and connected to real cell-making quality."
+  },
+  "professional_lab_meeting_report": {
+    "name": "Professional lab meeting report",
+    "prompt": "Write a professional lab-meeting report. Focus on key trends, data quality, reproducibility, monthly progress, major deviations, likely causes, and recommended actions. Use concise technical language suitable for a battery research group meeting."
+  },
+  "strict_local_llm_report": {
+    "name": "Strict local LLM report",
+    "prompt": "Use only the supplied BatterySense AI evidence. Do not explain data format. Do not say this JSON contains. Do not invent values, cell counts, materials, or test conditions. Use exact metric names and exact cell/sample names. Write concise scientific interpretation only."
+  }
+}
