@@ -148,6 +148,9 @@ Install Ollama, then run:
 
 ```bash
 ollama pull llama3.2
+ollama pull gpt-oss:20b
+ollama pull mistral
+ollama pull gemma4
 streamlit run app.py
 ```
 
