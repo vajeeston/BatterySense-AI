@@ -27,7 +27,9 @@ BATTERY_COLUMN_ALIASES: dict[str, list[str]] = {
     "cv_capacity": ["cv capacity", "cv_capacity", "constant voltage capacity", "cv charge capacity", "charge_cv_capacity", "cv cap", "cv_charge_capacity", "cv capacity(ah)"],
     "c_rate": ["c rate", "c-rate", "crate", "rate", "rate type", "current rate", "discharge rate", "charge rate"],
     "step_type": ["step", "step type", "step_type", "mode", "status", "state", "procedure", "test step", "control mode"],
-    "time": ["time", "test time", "date time", "datetime", "total time", "time(s)", "time / s"],
+    "time": ["time", "test time", "date time", "datetime", "total time", "time(s)", "time / s", "step time", "step_time"],
+    "charge_time": ["charge time", "charge_time", "chg time", "charging time", "lithiation time", "charge duration", "chg duration", "charge_time_s", "charge time(s)"],
+    "discharge_time": ["discharge time", "discharge_time", "dchg time", "discharging time", "delithiation time", "discharge duration", "dchg duration", "discharge_time_s", "discharge time(s)"],
 }
 
 DISPLAY_NAMES: dict[str, str] = {
@@ -43,10 +45,12 @@ DISPLAY_NAMES: dict[str, str] = {
     "cv_capacity": "CV capacity",
     "c_rate": "C-rate / rate label",
     "step_type": "Step/protocol type",
-    "time": "Time / timestamp",
+    "time": "Generic time / timestamp",
+    "charge_time": "Charge/lithiation time",
+    "discharge_time": "Discharge/delithiation time",
 }
 
-NUMERIC_SEMANTIC_COLUMNS = {"cycle_number", "charge_capacity", "discharge_capacity", "coulombic_efficiency", "voltage", "current", "cc_capacity", "cv_capacity"}
+NUMERIC_SEMANTIC_COLUMNS = {"cycle_number", "charge_capacity", "discharge_capacity", "coulombic_efficiency", "voltage", "current", "cc_capacity", "cv_capacity", "charge_time", "discharge_time"}
 CANONICAL_COLUMN_NAMES: dict[str, str] = {key: key for key in BATTERY_COLUMN_ALIASES}
 
 
@@ -69,9 +73,10 @@ def _score_column(column: str, aliases: Iterable[str]) -> float:
         alias_compact = compact_name(alias)
         if col_compact == alias_compact:
             score = 1.0
-        elif alias_compact and alias_compact in col_compact:
+        # Avoid false positives from very short aliases such as "v" or "i".
+        elif len(alias_compact) > 2 and alias_compact in col_compact:
             score = 0.92
-        elif col_compact and col_compact in alias_compact:
+        elif len(col_compact) > 2 and col_compact in alias_compact:
             score = 0.86
         else:
             score = SequenceMatcher(None, col_norm, alias_norm).ratio()
@@ -87,6 +92,12 @@ def detect_columns(df: pd.DataFrame, min_score: float = 0.68) -> dict[str, str |
         suggestions[semantic_name] = ranked[0][0] if ranked and ranked[0][1] >= min_score else None
     if suggestions.get("cell_name") is None and "source_file" in df.columns:
         suggestions["cell_name"] = "source_file"
+    # CC/CV capacities should only be mapped when explicit CC/CV-like columns exist.
+    # Do not re-use the total charge-capacity column as both CC and CV capacity.
+    for aux_key in ("cc_capacity", "cv_capacity"):
+        aux = suggestions.get(aux_key)
+        if aux and aux in {suggestions.get("charge_capacity"), suggestions.get("discharge_capacity")}:
+            suggestions[aux_key] = None
     return suggestions
 
 

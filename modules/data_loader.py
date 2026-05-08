@@ -108,7 +108,11 @@ def combine_datasets(datasets: list[LoadedDataset]) -> pd.DataFrame:
     frames: list[pd.DataFrame] = []
     for item in datasets:
         df = item.dataframe.copy()
-        df["source_file"] = item.source_file
+        # Use the file stem as the default cell/sample label so plots and reports
+        # display clean names like cell_01 instead of cell_01.csv.
+        # Keep the original file name separately for traceability.
+        df["source_file"] = Path(item.source_file).stem
+        df["source_file_original"] = item.source_file
         if item.source_sheet is not None:
             df["source_sheet"] = item.source_sheet
         frames.append(df)

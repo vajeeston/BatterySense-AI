@@ -24,10 +24,14 @@ DEFAULT_CLEANING_SETTINGS: dict[str, Any] = {
     "terminal_zero_capacity_is_incomplete": True,
     "terminal_change_threshold_pct": 30.0,
     "minimum_terminal_reference_points": 3,
-    "formation_max_cycles": 3,
+    "formation_max_cycles": 1,
     "formation_ce_threshold_pct": 95.0,
     "rate_test_cv_threshold": 0.08,
     "rate_test_window_cycles": 5,
+    "rate_test_auto_recovery_detection": True,
+    "rate_test_recovery_jump_threshold_pct": 25.0,
+    "rate_test_max_search_cycles": 80,
+    "rate_test_min_cycles": 2,
 }
 
 
@@ -121,6 +125,161 @@ def _detect_incomplete_terminal_points(df: pd.DataFrame, mapping: dict[str, str 
     return data
 
 
+
+def _detect_rate_test_by_recovery_jump(
+    data: pd.DataFrame,
+    group: pd.DataFrame,
+    mapping: dict[str, str | None],
+    cfg: dict[str, Any],
+) -> tuple[pd.Index | None, Any | None]:
+    """Detect an early rate-test block followed by a recovery/cycling block.
+
+    Many battery protocols look like: formation cycle(s) -> rate-test cycles at
+    progressively higher C-rates -> recovery/cycling at a stable moderate
+    C-rate. The rate-test block often ends with a large capacity recovery jump.
+    This method marks all cycles after formation and before that recovery jump
+    as ``rate_test`` so early low-rate rate-test cycles are not omitted.
+    """
+    cycle_col = _mapped(mapping, "cycle_number")
+    discharge_col = _mapped(mapping, "discharge_capacity")
+    if not (cycle_col and cycle_col in group.columns and discharge_col and discharge_col in group.columns):
+        return None, None
+
+    g = group.sort_values(cycle_col).copy()
+    cycles = pd.to_numeric(g[cycle_col], errors="coerce")
+    cap = pd.to_numeric(g[discharge_col], errors="coerce").replace([np.inf, -np.inf], np.nan)
+
+    valid = g.index[cycles.notna() & cap.notna() & (cap > 0)]
+    if len(valid) < 8:
+        return None, None
+
+    min_cycle = float(cycles.loc[valid].min())
+    formation_cycles = int(cfg.get("formation_max_cycles", 1))
+    formation_end = min_cycle + max(formation_cycles, 1) - 1
+    max_search_cycle = formation_end + float(cfg.get("rate_test_max_search_cycles", 80))
+    jump_threshold = float(cfg.get("rate_test_recovery_jump_threshold_pct", 25.0))
+    min_rate_cycles = int(cfg.get("rate_test_min_cycles", 2))
+
+    ordered_idx = [idx for idx in g.index if pd.notna(cycles.loc[idx]) and cycles.loc[idx] <= max_search_cycle]
+    recovery_idx = None
+    for pos in range(1, len(ordered_idx)):
+        prev_idx = ordered_idx[pos - 1]
+        curr_idx = ordered_idx[pos]
+        prev_cap = cap.loc[prev_idx]
+        curr_cap = cap.loc[curr_idx]
+        curr_cycle = cycles.loc[curr_idx]
+        if pd.isna(prev_cap) or pd.isna(curr_cap) or prev_cap <= 0 or pd.isna(curr_cycle):
+            continue
+        if curr_cycle <= formation_end + min_rate_cycles:
+            continue
+
+        jump_pct = (curr_cap - prev_cap) / abs(prev_cap) * 100.0
+        if jump_pct < jump_threshold:
+            continue
+
+        lookahead_idx = ordered_idx[pos : min(len(ordered_idx), pos + 8)]
+        later_caps = cap.loc[lookahead_idx].dropna()
+        if len(later_caps) >= 3:
+            later_median = float(later_caps.median())
+            if later_median > 0 and curr_cap < 0.80 * later_median:
+                continue
+
+        recovery_idx = curr_idx
+        break
+
+    if recovery_idx is None:
+        return None, None
+
+    recovery_cycle = cycles.loc[recovery_idx]
+    rate_mask = (cycles > formation_end) & (cycles < recovery_cycle)
+    rate_idx = g.index[rate_mask.fillna(False)]
+    if len(rate_idx) < min_rate_cycles:
+        return None, None
+
+    return rate_idx, recovery_cycle
+
+
+def apply_protocol_segment_overrides(
+    df: pd.DataFrame,
+    override_text: str | None,
+    mapping: dict[str, str | None] | None = None,
+) -> pd.DataFrame:
+    """Apply user-defined protocol segment cycle ranges.
+
+    Examples, one line per cell or ``all``:
+    ``cell_01: formation=1; rate_test=2-14; cycling=15-``
+    ``cell_02: rate_test=2-22``
+    ``all: formation=1``
+    """
+    if not override_text or not str(override_text).strip():
+        return df
+
+    data = df.copy()
+    if "protocol_segment" not in data.columns:
+        data["protocol_segment"] = "cycling"
+
+    group_col = _group_column(data, mapping)
+    cycle_col = _mapped(mapping, "cycle_number") if mapping else None
+    if not cycle_col or cycle_col not in data.columns:
+        cycle_col = "cycle_number" if "cycle_number" in data.columns else None
+    if not cycle_col:
+        return data
+
+    cycles = pd.to_numeric(data[cycle_col], errors="coerce")
+    aliases = {
+        "formation": "formation",
+        "form": "formation",
+        "rate": "rate_test",
+        "rate_test": "rate_test",
+        "ratetest": "rate_test",
+        "rate test": "rate_test",
+        "cycling": "cycling",
+        "cycle": "cycling",
+        "long": "cycling",
+        "long_term": "cycling",
+    }
+
+    for raw_line in str(override_text).splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if ":" in line:
+            cell_part, range_part = line.split(":", 1)
+        elif "=" in line and line.split("=", 1)[0].strip().lower() not in aliases:
+            cell_part, range_part = line.split("=", 1)
+        else:
+            cell_part, range_part = "all", line
+        cell_key = cell_part.strip() or "all"
+
+        if group_col and group_col in data.columns and cell_key.lower() not in {"all", "*", "default"}:
+            cell_values = data[group_col].astype(str)
+            cell_mask = cell_values.str.replace(r"\.[A-Za-z0-9]+$", "", regex=True).eq(cell_key)
+            cell_mask |= cell_values.eq(cell_key)
+        else:
+            cell_mask = pd.Series(True, index=data.index)
+
+        for item in range_part.replace(",", ";").split(";"):
+            token = item.strip()
+            if not token or "=" not in token:
+                continue
+            seg_raw, rng_raw = token.split("=", 1)
+            seg = aliases.get(seg_raw.strip().lower().replace("-", "_"))
+            if not seg:
+                continue
+            rng = rng_raw.strip()
+            if not rng:
+                continue
+            if "-" in rng:
+                start_text, end_text = rng.split("-", 1)
+                start = float(start_text.strip()) if start_text.strip() else -np.inf
+                end = float(end_text.strip()) if end_text.strip() else np.inf
+            else:
+                start = end = float(rng.strip())
+            mask = cell_mask & cycles.between(start, end, inclusive="both")
+            data.loc[mask.fillna(False), "protocol_segment"] = seg
+
+    return data
+
 def detect_protocol_segments(df: pd.DataFrame, mapping: dict[str, str | None], settings: dict[str, Any] | None = None) -> pd.DataFrame:
     cfg = {**DEFAULT_CLEANING_SETTINGS, **(settings or {})}
     data = df.copy()
@@ -142,18 +301,28 @@ def detect_protocol_segments(df: pd.DataFrame, mapping: dict[str, str | None], s
         g = group.sort_values(cycle_col) if cycle_col and cycle_col in group.columns else group.copy()
         if g.empty:
             continue
+
         if cycle_col and cycle_col in g.columns:
             cycles = pd.to_numeric(g[cycle_col], errors="coerce")
             min_cycle = cycles.min(skipna=True)
             if pd.notna(min_cycle):
-                formation_mask = cycles <= min_cycle + int(cfg.get("formation_max_cycles", 3)) - 1
+                formation_end = min_cycle + int(cfg.get("formation_max_cycles", 1)) - 1
+                formation_mask = cycles <= formation_end
                 data.loc[g.index[formation_mask.fillna(False)], "protocol_segment"] = "formation"
+
         if ce_col and ce_col in g.columns:
             ce = pd.to_numeric(g[ce_col], errors="coerce")
-            early = g.head(max(int(cfg.get("formation_max_cycles", 3)), 1))
+            early = g.head(max(int(cfg.get("formation_max_cycles", 1)), 1))
             early_ce = ce.loc[early.index]
             low_ce_idx = early.index[(early_ce < float(cfg.get("formation_ce_threshold_pct", 95.0))).fillna(False)]
             data.loc[low_ce_idx, "protocol_segment"] = "formation"
+
+        recovery_cycle = None
+        if bool(cfg.get("rate_test_auto_recovery_detection", True)):
+            auto_rate_idx, recovery_cycle = _detect_rate_test_by_recovery_jump(data, g, mapping, cfg)
+            if auto_rate_idx is not None and len(auto_rate_idx) > 0:
+                data.loc[auto_rate_idx, "protocol_segment"] = "rate_test"
+
         rate_mask = pd.Series(False, index=g.index)
         if discharge_col and discharge_col in g.columns and len(g) >= 8:
             cap = pd.to_numeric(g[discharge_col], errors="coerce").replace([np.inf, -np.inf], np.nan)
@@ -164,8 +333,16 @@ def detect_protocol_segments(df: pd.DataFrame, mapping: dict[str, str | None], s
             cur = pd.to_numeric(g[current_col], errors="coerce").replace([np.inf, -np.inf], np.nan).abs()
             if cur.nunique(dropna=True) > 2:
                 rate_mask |= cur.pct_change().abs().fillna(0) > 0.15
+
+        if cycle_col and cycle_col in g.columns and recovery_cycle is not None and pd.notna(recovery_cycle):
+            cycles = pd.to_numeric(g[cycle_col], errors="coerce")
+            # Prevent the rolling-CV heuristic from tagging recovery and normal
+            # cycling cycles as rate-test after the capacity recovery transition.
+            rate_mask &= cycles < float(recovery_cycle)
+
         rate_idx = g.index[rate_mask.fillna(False) & (data.loc[g.index, "protocol_segment"] != "formation")]
         data.loc[rate_idx, "protocol_segment"] = "rate_test"
+
     return data
 
 
@@ -175,7 +352,10 @@ def add_quality_flags(df: pd.DataFrame, mapping: dict[str, str | None] | None, s
     data["analysis_include"] = True
     data["quality_flag"] = ""
     data["exclude_reason"] = ""
-    numeric_keys = ["cycle_number", "charge_capacity", "discharge_capacity", "coulombic_efficiency", "voltage", "current", "cc_capacity", "cv_capacity"]
+    # Robust numeric outlier filtering should not remove ordinary formation-cycle
+    # CE values. Formation CE can be much lower than cycling CE but still be real
+    # experimental data. CE is checked only by absolute plausibility thresholds.
+    numeric_keys = ["cycle_number", "charge_capacity", "discharge_capacity", "voltage", "current", "cc_capacity", "cv_capacity"]
     numeric_cols = [c for c in (_mapped(mapping, k) for k in numeric_keys) if c and c in data.columns]
     for col in [c for c in [_mapped(mapping, "cycle_number"), _mapped(mapping, "discharge_capacity")] if c in data.columns]:
         values = pd.to_numeric(data[col], errors="coerce")
