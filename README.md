@@ -216,8 +216,8 @@ A small progress/status panel is displayed during upload, cleaning, local metric
 
 ---
 
-© 2026 AU P. Vajeeston. BatterySense AI is free for non-commercial research, education, and personal use. Commercial use requires prior written permission.
-
+## BatterySense-AI Demo
+[Watch the BatterySense-AI demo](docs/BatterySense-AI_demo.webm)
 
 ## Latest update: retention baselines, visible metrics, and export rendering
 
