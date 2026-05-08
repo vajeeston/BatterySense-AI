@@ -175,20 +175,6 @@ BatterySense AI does not silently delete suspicious data. It adds:
 
 Rows marked as `analysis_include=False` are excluded from metrics and plots by default, but they remain in the processed data and anomaly tables.
 
-## License
-
-BatterySense AI
-
-Copyright (c) 2026 AU P. Vajeeston
-
-This software is licensed under the PolyForm Noncommercial License 1.0.0.
-
-For commercial licensing, contact:
-
-AU P. Vajeeston, vajeeston@gmail.com
-
-
-
 ## Latest analysis update: locally calculated battery metrics
 
 BatterySense AI now treats the uploaded battery tester file as the raw experimental source and calculates the main derived battery metrics locally in Python. The app primarily requires the following mapped columns:
@@ -277,3 +263,15 @@ Use this when the exact tester protocol is known. The detected segment range tab
 BatterySense AI includes editable prompt templates for report writing. Templates are stored in `config/prompt_templates.json` and can be selected from the sidebar under **AI prompt settings**. Users can modify the free-text prompt before generating an interpretation with OpenAI or a local Ollama model.
 
 The AI receives calculated evidence and summary tables only, not the full raw dataset.
+
+## License
+
+BatterySense AI
+
+Copyright (c) 2026 AU P. Vajeeston
+
+This software is licensed under the PolyForm Noncommercial License 1.0.0.
+
+For commercial licensing, contact:
+
+AU P. Vajeeston, vajeeston@gmail.com
